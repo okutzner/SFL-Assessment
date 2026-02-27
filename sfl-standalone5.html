@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='45' r='35' fill='none' stroke='%234f46e5' stroke-width='10'/><line x1='62' y1='65' x2='85' y2='90' stroke='%234f46e5' stroke-width='10' stroke-linecap='round'/></svg>">
+<title>Short Form Learning - Project Readiness Check</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+  .flex { display: flex; }
+  .items-center { align-items: center; }
+  .justify-between { justify-content: space-between; }
+  .justify-center { justify-content: center; }
+  .gap-2 { gap: 8px; }
+  .gap-3 { gap: 12px; }
+  .flex-wrap { flex-wrap: wrap; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-4px)} 40%,80%{transform:translateX(4px)} }
+  .shake { animation: shake 0.4s ease; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+const Icons = {
+  FileText: ({size=24,color="#000"}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>,
+  Layers: ({size=24,color="#000"}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>,
+  Wrench: ({size=24,color="#000"}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>,
+  Truck: ({size=24,color="#000"}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>,
+  Cog: ({size=24,color="#000"}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+  Shield: ({size=24,color="#000"}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+  CheckCircle: ({size=24,color="#000"}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
+  Clock: ({size=24,color="#000"}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+  ChevronRight: ({size=24,color="#000"}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>,
+  RotateCcw: ({size=24,color="#000"}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>,
+  List: ({size=24,color="#000"}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>,
+  BarChart: ({size=24,color="#000"}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>,
+  Copy: ({size=24,color="#000"}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>,
+  Check: ({size=24,color="#000"}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+  AlertCircle: ({size=24,color="#000"}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
+};
+
+const sections = [
+  { id: 1, title: 'Project Overview', icon: Icons.FileText },
+  { id: 2, title: 'Development Stage', icon: Icons.Wrench },
+  { id: 3, title: 'Delivery History', icon: Icons.Truck },
+  { id: 4, title: 'Content Inventory', icon: Icons.Layers },
+  { id: 5, title: 'Development Lift', icon: Icons.Cog },
+  { id: 6, title: 'Production Requirements', icon: Icons.Wrench },
+  { id: 7, title: 'Approvals & Governance', icon: Icons.Shield },
+];
+
+const labelMaps = {
+  existingContent: { slides: 'Complete slide deck(s) ready to use live', recorded: 'Recorded lectures/webinars ready to transfer', written: 'Written materials', assessments: 'Assessment and quiz questions, answers, and feedback', rubric: 'Rubric complete with criteria, performance levels, and descriptors', outcomes: 'Learning outcomes', media: 'Media including graphics, images or audio files', marketing: 'Marketing copy', nothing: 'Nothing exists yet' },
+  contentStage: { concept: 'Concept only', outline: 'Outline exists', developed: 'Fully developed (not digitised)', f2f: 'Previously delivered face-to-face', online: 'Previously delivered online', credentialed: 'Previously credentialed/accredited' },
+  deliveredBefore: { no: 'No – new offering', f2f: 'Yes – face-to-face', hybrid: 'Yes – hybrid or blended delivery', sync: 'Yes – online synchronous (live sessions via Zoom, etc.)', async: 'Yes – online asynchronous (self-paced, no live component)' },
+  developmentLift: { minimal: 'Minimal – reformatting/digitisation', moderate: 'Moderate – rewrite for online', significant: 'Significant – substantial new authoring', scratch: 'Full build – no existing content' },
+  productionElements: { lms: 'LMS build only', video: 'Video production', animation: 'Animation/motion graphics', interactive: 'Interactive learning objects', sme: 'External SME interviews', credential: 'Credential/badge integration', credit: 'Academic approval processes', partner: 'Industry partner sign-off', legal: 'Legal/IP clearance' },
+  approvals: { faculty: 'Faculty approval', academic: 'Academic Board / credit-bearing', industry: 'Industry sign-off', marketing: 'Marketing sign-off', none: 'None identified' },
+  marketingDeadline: { yes: 'Yes', no: 'No', tbd: 'TBD' }
+};
+
+const Radio = ({ checked, onChange, label }) => (
+  <div onClick={onChange} className="flex items-center gap-3" style={{ padding: 12, borderRadius: 8, cursor: 'pointer', background: checked ? '#eef2ff' : 'transparent', border: checked ? '1px solid #a5b4fc' : '1px solid transparent', marginBottom: 4, transition: 'all 0.2s' }}>
+    <div style={{ width: 20, height: 20, borderRadius: '50%', border: checked ? '6px solid #4f46e5' : '2px solid #d1d5db', background: '#fff', flexShrink: 0, transition: 'all 0.2s' }} />
+    <span style={{ color: checked ? '#312e81' : '#374151', fontWeight: checked ? 600 : 400 }}>{label}</span>
+  </div>
+);
+
+const Checkbox = ({ checked, onChange, label, disabled }) => (
+  <div onClick={disabled ? undefined : onChange} className="flex items-center gap-3" style={{ padding: 12, borderRadius: 8, cursor: disabled ? 'not-allowed' : 'pointer', background: checked ? '#eef2ff' : 'transparent', border: checked ? '1px solid #a5b4fc' : '1px solid transparent', marginBottom: 4, transition: 'all 0.2s', opacity: disabled ? 0.4 : 1 }}>
+    <div style={{ width: 20, height: 20, borderRadius: 4, border: checked ? 'none' : '2px solid #d1d5db', background: checked ? '#4f46e5' : '#fff', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
+      {checked && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+    </div>
+    <span style={{ color: checked ? '#312e81' : disabled ? '#9ca3af' : '#374151', fontWeight: checked ? 600 : 400 }}>{label}</span>
+  </div>
+);
+
+const ScoreBar = ({ label, value, max, color }) => (
+  <div style={{ marginBottom: 16 }}>
+    <div className="flex justify-between" style={{ marginBottom: 6 }}>
+      <span style={{ fontSize: 14, fontWeight: 500, color: '#374151' }}>{label}</span>
+      <span style={{ fontSize: 14, fontWeight: 700, color }}>{value}/{max}</span>
+    </div>
+    <div style={{ height: 10, background: '#e5e7eb', borderRadius: 999, overflow: 'hidden' }}>
+      <div style={{ height: '100%', width: `${(value / max) * 100}%`, background: color, borderRadius: 999, transition: 'width 0.8s ease' }} />
+    </div>
+  </div>
+);
+
+const SummaryRow = ({ label, value, muted }) => (
+  <div style={{ padding: '12px 0', borderBottom: '1px solid #f1f5f9' }}>
+    <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>{label}</div>
+    <div style={{ fontSize: 15, fontWeight: 500, color: muted ? '#9ca3af' : '#1e1b4b' }}>{value}</div>
+  </div>
+);
+
+const ValidationMsg = ({ msg }) => (
+  <div className="flex items-center gap-2" style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '10px 14px', marginTop: 12 }}>
+    <Icons.AlertCircle size={16} color="#dc2626" />
+    <span style={{ fontSize: 13, fontWeight: 500, color: '#dc2626' }}>{msg}</span>
+  </div>
+);
+
+function InfoPanel() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ maxWidth: 640, margin: '0 auto', textAlign: 'left' }}>
+      <div onClick={() => setOpen(!open)} className="flex items-center justify-center gap-2" style={{ cursor: 'pointer', padding: '8px 16px', borderRadius: 999, background: '#fff', display: 'inline-flex', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', margin: '0 auto', transition: 'all 0.2s' }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span style={{ fontSize: 13, fontWeight: 600, color: '#6366f1' }}>What is this?</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.25s ease' }}><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div style={{ maxHeight: open ? 300 : 0, overflow: 'hidden', transition: 'max-height 0.35s ease, opacity 0.3s ease', opacity: open ? 1 : 0 }}>
+        <div style={{ background: '#fff', borderRadius: 12, padding: '16px 24px', marginTop: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+          <p style={{ fontSize: 14, color: '#4b5563', lineHeight: 1.6, margin: '0 0 10px' }}>This quick self-check is designed to help you understand how ready your project is for a Short Form Learning build — and give you a realistic sense of the timeline involved.</p>
+          <p style={{ fontSize: 14, color: '#4b5563', lineHeight: 1.6, margin: '0 0 10px' }}>It takes around 3–5 minutes to complete. You'll be asked about your existing content, how far along it is, and what production or approval steps may be needed. At the end, you'll receive a readiness score and an estimated development timeframe.</p>
+          <p style={{ fontSize: 14, color: '#4b5563', lineHeight: 1.6, margin: 0 }}>This is not a formal scoping process and doesn't commit you to anything. It's simply a way to identify any gaps early so that when you meet with the Learning Design team, you can hit the ground running.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [formData, setFormData] = useState({
+    projectName: '', faculty: '', launchDate: '',
+    existingContent: [], contentStage: '', deliveredBefore: '',
+    deliveryDetails: '', developmentLift: '', productionElements: [],
+    approvals: [], marketingDeadline: ''
+  });
+  const [showResults, setShowResults] = useState(false);
+  const [score, setScore] = useState(null);
+  const [activeSection, setActiveSection] = useState(1);
+  const [resultTab, setResultTab] = useState('score');
+  const [copied, setCopied] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [shakeKey, setShakeKey] = useState(0);
+
+  const handleContentCheckbox = (value) => {
+    setErrors(p => ({ ...p, existingContent: null }));
+    if (value === 'nothing') {
+      setFormData(p => ({ ...p, existingContent: p.existingContent.includes('nothing') ? [] : ['nothing'] }));
+    } else {
+      setFormData(p => ({ ...p, existingContent: p.existingContent.includes(value) ? p.existingContent.filter(v => v !== value) : [...p.existingContent.filter(v => v !== 'nothing'), value] }));
+    }
+  };
+
+  const handleCheckbox = (field, value) => {
+    setFormData(p => ({ ...p, [field]: p[field].includes(value) ? p[field].filter(v => v !== value) : [...p[field], value] }));
+  };
+
+  const getLabel = (map, val) => labelMaps[map]?.[val] || '';
+  const getLabels = (map, arr) => arr.length ? arr.map(v => getLabel(map, v)).filter(Boolean).join(', ') : null;
+
+  const validateSection = (section) => {
+    const e = {};
+    switch (section) {
+      case 1: if (!formData.projectName.trim()) e.projectName = 'Project name is required'; break;
+      case 2: if (!formData.contentStage) e.contentStage = 'Please select a content development stage'; break;
+      case 3: if (!formData.deliveredBefore) e.deliveredBefore = 'Please select a delivery history option'; break;
+      case 5: if (!formData.developmentLift) e.developmentLift = 'Please select a development lift option'; break;
+    }
+    return e;
+  };
+
+  const tryNavigate = (target) => {
+    const e = validateSection(activeSection);
+    if (Object.keys(e).length > 0) { setErrors(e); setShakeKey(k => k + 1); return; }
+    setErrors({});
+    setActiveSection(target);
+  };
+
+  const calculateScore = () => {
+    const e = validateSection(activeSection);
+    if (Object.keys(e).length > 0) { setErrors(e); setShakeKey(k => k + 1); return; }
+    setErrors({});
+
+    const content = formData.existingContent.length === 0 ? ['nothing'] : formData.existingContent;
+
+    let contentMaturity = 0;
+    switch (formData.contentStage) {
+      case 'credentialed': contentMaturity = 4; break;
+      case 'online': contentMaturity = 3; break;
+      case 'f2f': contentMaturity = 2; break;
+      case 'developed': contentMaturity = 1.5; break;
+      case 'outline': contentMaturity = 1; break;
+      case 'concept': contentMaturity = 0; break;
+    }
+    let contentAvailability = 0;
+    if (content.includes('slides')) contentAvailability++;
+    if (content.includes('assessments')) contentAvailability++;
+    if (content.includes('outcomes')) contentAvailability++;
+    if (content.includes('recorded')) contentAvailability++;
+
+    let developmentLift = 0;
+    switch (formData.developmentLift) {
+      case 'minimal': developmentLift = 4; break;
+      case 'moderate': developmentLift = 2; break;
+      case 'significant': developmentLift = 1; break;
+      case 'scratch': developmentLift = 0; break;
+    }
+
+    let productionComplexity = 4;
+    if (formData.productionElements.includes('video')) productionComplexity--;
+    if (formData.productionElements.includes('animation')) productionComplexity--;
+    if (formData.productionElements.includes('sme')) productionComplexity--;
+    if (formData.productionElements.includes('credit')) productionComplexity--;
+    productionComplexity = Math.max(0, productionComplexity);
+
+    const total = contentMaturity + contentAvailability + developmentLift + productionComplexity;
+    let category, timeline, color, bg;
+    if (total >= 13) { category = 'Fast Track'; timeline = '4-6 weeks'; color = '#059669'; bg = '#ecfdf5'; }
+    else if (total >= 9) { category = 'Accelerated'; timeline = '6-10 weeks'; color = '#2563eb'; bg = '#eff6ff'; }
+    else if (total >= 5) { category = 'Standard Build'; timeline = '10-14 weeks'; color = '#d97706'; bg = '#fffbeb'; }
+    else { category = 'Full Development'; timeline = '14-20+ weeks'; color = '#dc2626'; bg = '#fef2f2'; }
+
+    setScore({ total, contentMaturity, contentAvailability, developmentLift, productionComplexity, category, timeline, color, bg });
+    setShowResults(true);
+    setResultTab('score');
+  };
+
+  const buildCopyText = () => {
+    if (!score) return '';
+    const content = formData.existingContent.length === 0 ? ['nothing'] : formData.existingContent;
+    const lines = [
+      'SHORT FORM LEARNING - PROJECT READINESS CHECK',
+      '=============================================',
+      '',
+      `Overall Score: ${score.total}/16`,
+      `Category: ${score.category}`,
+      `Estimated Timeline: ${score.timeline}`,
+      '',
+      'SCORE BREAKDOWN',
+      `  Content Maturity:      ${score.contentMaturity}/4`,
+      `  Content Availability:  ${score.contentAvailability}/4`,
+      `  Development Lift:      ${score.developmentLift}/4`,
+      `  Production Simplicity: ${score.productionComplexity}/4`,
+      '',
+      'RESPONSE SUMMARY',
+      '---------------------------------------------',
+      `Project Name: ${formData.projectName || '—'}`,
+      `Faculty / Industry Partner: ${formData.faculty || '—'}`,
+      `Target Launch Date: ${formData.launchDate || '—'}`,
+      `Content Stage: ${getLabel('contentStage', formData.contentStage) || '—'}`,
+      `Delivered Before: ${getLabel('deliveredBefore', formData.deliveredBefore) || '—'}`,
+    ];
+    if (formData.deliveredBefore && formData.deliveredBefore !== 'no') {
+      lines.push(`Delivery Details: ${formData.deliveryDetails || '—'}`);
+    }
+    lines.push(
+      `Existing Content: ${getLabels('existingContent', content) || '—'}`,
+      `Development Lift: ${getLabel('developmentLift', formData.developmentLift) || '—'}`,
+      `Production Elements: ${getLabels('productionElements', formData.productionElements) || '—'}`,
+      `Approvals Required: ${getLabels('approvals', formData.approvals) || '—'}`,
+      `Marketing Deadline Committed: ${getLabel('marketingDeadline', formData.marketingDeadline) || '—'}`
+    );
+    return lines.join('\n');
+  };
+
+  const handleCopy = () => {
+    const text = buildCopyText();
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true); setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {
+      const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+      setCopied(true); setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const resetForm = () => {
+    setFormData({ projectName: '', faculty: '', launchDate: '', existingContent: [], contentStage: '', deliveredBefore: '', deliveryDetails: '', developmentLift: '', productionElements: [], approvals: [], marketingDeadline: '' });
+    setShowResults(false); setScore(null); setActiveSection(1); setCopied(false); setErrors({});
+  };
+
+  if (showResults && score) {
+    const content = formData.existingContent.length === 0 ? ['nothing'] : formData.existingContent;
+    const tabStyle = (active) => ({
+      flex: 1, padding: '12px 16px', border: 'none', borderBottom: active ? '3px solid #4f46e5' : '3px solid transparent',
+      background: 'transparent', color: active ? '#4f46e5' : '#6b7280', fontWeight: 700, fontSize: 14,
+      cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit', transition: 'all 0.2s'
+    });
+
+    return (
+      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #eef2ff 0%, #e0e7ff 50%, #c7d2fe 100%)', padding: '24px 16px' }}>
+        <div style={{ maxWidth: 720, margin: '0 auto' }}>
+          <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 20px 60px rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+            <div style={{ background: score.bg, padding: '48px 32px', textAlign: 'center', borderBottom: `3px solid ${score.color}` }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 64, height: 64, borderRadius: '50%', background: '#fff', marginBottom: 16, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                <Icons.CheckCircle size={32} color={score.color} />
+              </div>
+              <h1 style={{ fontSize: 28, fontWeight: 800, color: '#1e1b4b', margin: '0 0 8px' }}>Short Form Learning - Project Readiness Check</h1>
+              <div style={{ fontSize: 64, fontWeight: 800, color: score.color, lineHeight: 1.1 }}>{score.total}/16</div>
+              <div style={{ fontSize: 24, fontWeight: 700, color: score.color, margin: '8px 0' }}>{score.category}</div>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#fff', padding: '8px 20px', borderRadius: 999, fontSize: 16, color: '#4b5563', fontWeight: 500 }}>
+                <Icons.Clock size={18} /> Estimated: {score.timeline}
+              </div>
+            </div>
+
+            <div className="flex" style={{ borderBottom: '1px solid #e5e7eb' }}>
+              <button style={tabStyle(resultTab === 'score')} onClick={() => setResultTab('score')}>
+                <Icons.BarChart size={16} color={resultTab === 'score' ? '#4f46e5' : '#6b7280'} /> Score Breakdown
+              </button>
+              <button style={tabStyle(resultTab === 'summary')} onClick={() => setResultTab('summary')}>
+                <Icons.List size={16} color={resultTab === 'summary' ? '#4f46e5' : '#6b7280'} /> Summary
+              </button>
+            </div>
+
+            <div style={{ padding: 32 }}>
+              {resultTab === 'score' && (
+                <div>
+                  <ScoreBar label="Content Maturity" value={score.contentMaturity} max={4} color="#8b5cf6" />
+                  <ScoreBar label="Content Availability" value={score.contentAvailability} max={4} color="#3b82f6" />
+                  <ScoreBar label="Development Lift" value={score.developmentLift} max={4} color="#10b981" />
+                  <ScoreBar label="Production Simplicity" value={score.productionComplexity} max={4} color="#f59e0b" />
+                  <div style={{ background: '#f8fafc', borderRadius: 12, padding: 20, marginTop: 24, border: '1px solid #e2e8f0' }}>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, color: '#1e1b4b', margin: '0 0 8px' }}>{formData.projectName}</h3>
+                    <p style={{ fontSize: 14, color: '#64748b', margin: 0 }}>Faculty/Partner: {formData.faculty || 'Not specified'}</p>
+                    {formData.launchDate && <p style={{ fontSize: 14, color: '#64748b', margin: '4px 0 0' }}>Target Launch: {formData.launchDate}</p>}
+                  </div>
+                </div>
+              )}
+
+              {resultTab === 'summary' && (
+                <div>
+                  <div style={{ background: score.bg, borderRadius: 12, padding: 20, marginBottom: 20, border: `1px solid ${score.color}22` }}>
+                    <div className="flex justify-between items-center" style={{ marginBottom: 16 }}>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Overall Score</div>
+                        <div style={{ fontSize: 32, fontWeight: 800, color: score.color, lineHeight: 1.2 }}>{score.total}/16</div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: 18, fontWeight: 700, color: score.color }}>{score.category}</div>
+                        <div style={{ fontSize: 14, color: '#6b7280' }}>{score.timeline}</div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                      {[
+                        { l: 'Content Maturity', v: score.contentMaturity, c: '#8b5cf6' },
+                        { l: 'Content Availability', v: score.contentAvailability, c: '#3b82f6' },
+                        { l: 'Development Lift', v: score.developmentLift, c: '#10b981' },
+                        { l: 'Production Simplicity', v: score.productionComplexity, c: '#f59e0b' },
+                      ].map(s => (
+                        <div key={s.l} className="flex justify-between items-center" style={{ background: '#fff', borderRadius: 8, padding: '8px 12px' }}>
+                          <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 500 }}>{s.l}</span>
+                          <span style={{ fontSize: 14, fontWeight: 700, color: s.c }}>{s.v}/4</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ background: '#f8fafc', borderRadius: 12, padding: '4px 20px 8px', border: '1px solid #e2e8f0' }}>
+                    <SummaryRow label="Project Name" value={formData.projectName} />
+                    <SummaryRow label="Faculty / Industry Partner" value={formData.faculty || '—'} muted={!formData.faculty} />
+                    <SummaryRow label="Target Launch Date" value={formData.launchDate || '—'} muted={!formData.launchDate} />
+                    <SummaryRow label="Content Stage" value={getLabel('contentStage', formData.contentStage) || '—'} muted={!formData.contentStage} />
+                    <SummaryRow label="Delivered Before" value={getLabel('deliveredBefore', formData.deliveredBefore) || '—'} muted={!formData.deliveredBefore} />
+                    {formData.deliveredBefore && formData.deliveredBefore !== 'no' && (
+                      <SummaryRow label="Delivery Details" value={formData.deliveryDetails || '—'} muted={!formData.deliveryDetails} />
+                    )}
+                    <SummaryRow label="Existing Content" value={getLabels('existingContent', content) || '—'} muted={content.includes('nothing')} />
+                    <SummaryRow label="Development Lift" value={getLabel('developmentLift', formData.developmentLift) || '—'} muted={!formData.developmentLift} />
+                    <SummaryRow label="Production Elements" value={getLabels('productionElements', formData.productionElements) || '—'} muted={!formData.productionElements.length} />
+                    <SummaryRow label="Approvals Required" value={getLabels('approvals', formData.approvals) || '—'} muted={!formData.approvals.length} />
+                    <SummaryRow label="Marketing Deadline Committed" value={getLabel('marketingDeadline', formData.marketingDeadline) || '—'} muted={!formData.marketingDeadline} />
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-between items-center" style={{ marginTop: 24, gap: 12 }}>
+                <button onClick={resetForm} style={{ flex: 1, padding: '14px 0', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit' }}>
+                  <Icons.RotateCcw size={18} color="#fff" /> Start New Assessment
+                </button>
+                <button onClick={handleCopy} style={{
+                  padding: '14px 20px', background: copied ? '#059669' : '#f8fafc', color: copied ? '#fff' : '#374151',
+                  border: copied ? 'none' : '1px solid #d1d5db', borderRadius: 12, fontSize: 14, fontWeight: 600,
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'inherit',
+                  transition: 'all 0.3s', whiteSpace: 'nowrap'
+                }}>
+                  {copied ? <><Icons.Check size={16} color="#fff" /> Copied!</> : <><Icons.Copy size={16} color="#374151" /> Copy</>}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const inputStyle = { width: '100%', padding: '10px 14px', borderRadius: 10, fontSize: 15, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' };
+  const nothingSelected = formData.existingContent.includes('nothing');
+
+  const renderSection = () => {
+    switch (activeSection) {
+      case 1: return (
+        <div>
+          <div style={{ marginBottom: 20 }}>
+            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+              Project Name <span style={{ color: '#dc2626' }}>*</span>
+            </label>
+            <input
+              style={{ ...inputStyle, border: errors.projectName ? '2px solid #dc2626' : '1px solid #d1d5db' }}
+              value={formData.projectName}
+              onChange={e => { setFormData({ ...formData, projectName: e.target.value }); if (errors.projectName) setErrors(p => ({...p, projectName: null})); }}
+              placeholder="Enter project name"
+            />
+            {errors.projectName && <ValidationMsg msg={errors.projectName} />}
+          </div>
+          <div style={{ marginBottom: 20 }}>
+            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Faculty / Industry Partner</label>
+            <input style={{ ...inputStyle, border: '1px solid #d1d5db' }} value={formData.faculty} onChange={e => setFormData({ ...formData, faculty: e.target.value })} placeholder="Enter faculty or partner name" />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Target Launch Date (if known)</label>
+            <input type="date" style={{ ...inputStyle, border: '1px solid #d1d5db' }} value={formData.launchDate} onChange={e => setFormData({ ...formData, launchDate: e.target.value })} />
+          </div>
+        </div>
+      );
+      case 2: return (
+        <div>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12 }}>
+            What stage is the content currently at? <span style={{ color: '#dc2626' }}>*</span>
+          </label>
+          {[{v:'concept',l:'Concept only'},{v:'outline',l:'Outline exists'},{v:'developed',l:'Fully developed academic content (not digitised)'},{v:'f2f',l:'Previously delivered face-to-face'},{v:'online',l:'Previously delivered online'},{v:'credentialed',l:'Previously credentialed/accredited'}].map(i => (
+            <Radio key={i.v} checked={formData.contentStage === i.v} onChange={() => { setFormData({...formData, contentStage: i.v}); if(errors.contentStage) setErrors(p=>({...p,contentStage:null})); }} label={i.l} />
+          ))}
+          {errors.contentStage && <ValidationMsg msg={errors.contentStage} />}
+        </div>
+      );
+      case 3: return (
+        <div>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12 }}>
+            Has this content been delivered before? <span style={{ color: '#dc2626' }}>*</span>
+          </label>
+          {[{v:'no',l:'No – new offering'},{v:'f2f',l:'Yes – face-to-face'},{v:'hybrid',l:'Yes – hybrid or blended delivery'},{v:'sync',l:'Yes – online synchronous (live sessions via Zoom, etc.)'},{v:'async',l:'Yes – online asynchronous (self-paced, no live component)'}].map(i => (
+            <Radio key={i.v} checked={formData.deliveredBefore === i.v} onChange={() => { setFormData({...formData, deliveredBefore: i.v}); if(errors.deliveredBefore) setErrors(p=>({...p,deliveredBefore:null})); }} label={i.l} />
+          ))}
+          {errors.deliveredBefore && <ValidationMsg msg={errors.deliveredBefore} />}
+          {formData.deliveredBefore && formData.deliveredBefore !== 'no' && (
+            <div style={{ marginTop: 16 }}>
+              <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Duration & audience details</label>
+              <textarea style={{ ...inputStyle, border: '1px solid #d1d5db', minHeight: 80, resize: 'vertical' }} value={formData.deliveryDetails} onChange={e => setFormData({...formData, deliveryDetails: e.target.value})} placeholder="E.g., 12-week course, 150 students" />
+            </div>
+          )}
+        </div>
+      );
+      case 4: return (
+        <div>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12 }}>What content have you already created for this course?</label>
+          {[{v:'slides',l:'Complete slide deck(s) ready to use live'},{v:'recorded',l:'Recorded lectures/webinars ready to transfer'},{v:'written',l:'Written materials (manuals, PDFs, notes)'},{v:'assessments',l:'Assessment and quiz questions, answers, and feedback'},{v:'rubric',l:'Rubric complete with criteria, performance levels, and descriptors'},{v:'outcomes',l:'Learning outcomes'},{v:'media',l:'Media including graphics, images or audio files'},{v:'marketing',l:'Marketing copy'}].map(i => (
+            <Checkbox key={i.v} checked={formData.existingContent.includes(i.v)} onChange={() => handleContentCheckbox(i.v)} label={i.l} disabled={nothingSelected} />
+          ))}
+          <div>
+            <Checkbox checked={nothingSelected} onChange={() => handleContentCheckbox('nothing')} label="Nothing exists yet" />
+          </div>
+        </div>
+      );
+      case 5: return (
+        <div>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12 }}>
+            How much new content development is required? <span style={{ color: '#dc2626' }}>*</span>
+          </label>
+          {[{v:'minimal',l:'Minimal – reformatting/digitisation'},{v:'moderate',l:'Moderate – rewrite for online/microcredential'},{v:'significant',l:'Significant – substantial new authoring'},{v:'scratch',l:'Full build – no existing content'}].map(i => (
+            <Radio key={i.v} checked={formData.developmentLift === i.v} onChange={() => { setFormData({...formData, developmentLift: i.v}); if(errors.developmentLift) setErrors(p=>({...p,developmentLift:null})); }} label={i.l} />
+          ))}
+          {errors.developmentLift && <ValidationMsg msg={errors.developmentLift} />}
+        </div>
+      );
+      case 6: return (
+        <div>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12 }}>Online courses can include a variety of content formats. Which of the following could you see working effectively for your learning content?</label>
+          {[{v:'lms',l:'LMS build only (text, quizzes, downloads)'},{v:'video',l:'Video production (studio or on location)'},{v:'animation',l:'Animation/motion graphics'},{v:'interactive',l:'Interactive learning objects'},{v:'sme',l:'External SME interviews'},{v:'credential',l:'Credential/badge integration'},{v:'credit',l:'Academic approval processes'},{v:'partner',l:'Industry partner sign-off'},{v:'legal',l:'Legal/IP clearance'}].map(i => (
+            <Checkbox key={i.v} checked={formData.productionElements.includes(i.v)} onChange={() => handleCheckbox('productionElements', i.v)} label={i.l} />
+          ))}
+        </div>
+      );
+      case 7: return (
+        <div>
+          <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12 }}>Approvals required?</label>
+          {[{v:'faculty',l:'Faculty approval'},{v:'academic',l:'Academic Board / credit-bearing'},{v:'industry',l:'Industry sign-off'},{v:'marketing',l:'Marketing sign-off'},{v:'none',l:'None identified'}].map(i => (
+            <Checkbox key={i.v} checked={formData.approvals.includes(i.v)} onChange={() => handleCheckbox('approvals', i.v)} label={i.l} />
+          ))}
+          <div style={{ marginTop: 20 }}>
+            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12 }}>Marketing launch date committed?</label>
+            {[{v:'yes',l:'Yes'},{v:'no',l:'No'},{v:'tbd',l:'TBD'}].map(i => (
+              <Radio key={i.v} checked={formData.marketingDeadline === i.v} onChange={() => setFormData({...formData, marketingDeadline: i.v})} label={i.l} />
+            ))}
+          </div>
+        </div>
+      );
+    }
+  };
+
+  const SectionIcon = sections[activeSection - 1].icon;
+  const progress = (activeSection / 7) * 100;
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #eef2ff 0%, #e0e7ff 50%, #c7d2fe 100%)', padding: '24px 16px' }}>
+      <div style={{ maxWidth: 800, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 56, height: 56, borderRadius: 16, background: '#4f46e5', marginBottom: 12 }}>
+            <Icons.FileText size={28} color="#fff" />
+          </div>
+          <h1 style={{ fontSize: 28, fontWeight: 800, color: '#1e1b4b', margin: '0 0 4px' }}>Short Form Learning</h1>
+          <p style={{ fontSize: 15, color: '#6366f1', margin: '0 0 16px', fontWeight: 500 }}>Project Readiness Check</p>
+          <InfoPanel />
+        </div>
+
+        <div style={{ background: '#fff', borderRadius: 16, padding: '16px 24px', marginBottom: 24, boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
+          <div className="flex justify-between items-center" style={{ marginBottom: 8 }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#6366f1' }}>Step {activeSection} of 7</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#6366f1' }}>{Math.round(progress)}%</span>
+          </div>
+          <div style={{ height: 6, background: '#e0e7ff', borderRadius: 999, overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${progress}%`, background: 'linear-gradient(90deg, #6366f1, #4f46e5)', borderRadius: 999, transition: 'width 0.4s ease' }} />
+          </div>
+        </div>
+
+        <div className="flex gap-2 flex-wrap" style={{ marginBottom: 24, justifyContent: 'center' }}>
+          {sections.map(s => (
+            <button key={s.id} onClick={() => tryNavigate(s.id)} style={{
+              padding: '6px 14px', borderRadius: 999, border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              background: activeSection === s.id ? '#4f46e5' : '#fff', color: activeSection === s.id ? '#fff' : '#6b7280',
+              boxShadow: activeSection === s.id ? '0 4px 12px rgba(79,70,229,0.3)' : '0 1px 4px rgba(0,0,0,0.06)', transition: 'all 0.2s', fontFamily: 'inherit'
+            }}>
+              {s.id}
+            </button>
+          ))}
+        </div>
+
+        <div key={shakeKey} className={Object.keys(errors).some(k=>errors[k]) ? 'shake' : ''} style={{ background: '#fff', borderRadius: 16, boxShadow: '0 20px 60px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
+          <div className="flex items-center gap-3" style={{ padding: '20px 28px', borderBottom: '1px solid #e5e7eb' }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: '#eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <SectionIcon size={20} color="#4f46e5" />
+            </div>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1e1b4b', margin: 0 }}>{sections[activeSection - 1].title}</h2>
+          </div>
+          <div style={{ padding: 28 }}>
+            {renderSection()}
+          </div>
+          <div className="flex justify-between" style={{ padding: '16px 28px', borderTop: '1px solid #f3f4f6', gap: 12 }}>
+            <button onClick={() => { setErrors({}); setActiveSection(Math.max(1, activeSection - 1)); }} disabled={activeSection === 1} style={{
+              padding: '12px 24px', borderRadius: 10, border: '1px solid #d1d5db', background: '#fff', color: activeSection === 1 ? '#d1d5db' : '#374151',
+              fontWeight: 600, fontSize: 14, cursor: activeSection === 1 ? 'not-allowed' : 'pointer', fontFamily: 'inherit'
+            }}>
+              Back
+            </button>
+            {activeSection < 7 ? (
+              <button onClick={() => tryNavigate(activeSection + 1)} className="flex items-center gap-2" style={{
+                padding: '12px 28px', borderRadius: 10, border: 'none', background: '#4f46e5', color: '#fff',
+                fontWeight: 600, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit'
+              }}>
+                Next <Icons.ChevronRight size={16} color="#fff" />
+              </button>
+            ) : (
+              <button onClick={calculateScore} style={{
+                padding: '12px 28px', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer', boxShadow: '0 4px 14px rgba(79,70,229,0.4)', fontFamily: 'inherit'
+              }}>
+                Calculate Score
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.render(<App />, document.getElementById('root'));
+</script>
+</body>
+</html>
