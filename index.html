@@ -19,7 +19,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script>
 (function(){
-const h=React.createElement,{useState}=React;
+const {createElement:h,useState,useCallback,memo}=React;
+
+const LOGO="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAcYAAACOCAYAAACrHqicAAAACXBIWXMAAAsSAAALEgHS3X78AAAX+klEQVR4nO3dfVAUZ54H8G82ZE0FZkyyFxWEaOIgYG6zuwF177IrgrFmCQZfchJETXZLgm6yuQhjdO8KZXypS0h40TIaRFO3WaOiXhDZZF2SyIu7poKCJm4pKGjU4UWzeyozktKSOu8Pttun532GgenG76cqVRmc7nmmZ7q/008/z6/vuX37NoiIiKjP94LdACIiIjVhMBIREQkYjERERAIGIxERkYDBSEREJGAwEhERCRiMREREAgYjERGRgMFIREQkYDASEREJGIxEREQCBiMREZGAwUhERCRgMBIREQkYjERERAIGIxERkYDBSEREJGAwEhERCRiMREREAgYjERGRgMFIREQkYDASEREJGIxEREQCBiMREZGAwUhERCRgMBIREQkYjERERCD/AaUBx5OLHjRXAAAAAElFTkSuQmCC";
+
 const sv=(c,s,col)=>h('svg',{width:s,height:s,viewBox:"0 0 24 24",fill:"none",stroke:col,strokeWidth:"2",strokeLinecap:"round",strokeLinejoin:"round"},...c);
 const Icons={
   FileText:({size:s=24,color:c="#000"})=>sv([h('path',{key:0,d:"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"}),h('polyline',{key:1,points:"14 2 14 8 20 8"}),h('line',{key:2,x1:"16",y1:"13",x2:"8",y2:"13"}),h('line',{key:3,x1:"16",y1:"17",x2:"8",y2:"17"}),h('polyline',{key:4,points:"10 9 9 9 8 9"})],s,c),
@@ -39,41 +42,55 @@ const Icons={
   AlertCircle:({size:s=24,color:c="#000"})=>sv([h('circle',{key:0,cx:"12",cy:"12",r:"10"}),h('line',{key:1,x1:"12",y1:"8",x2:"12",y2:"12"}),h('line',{key:2,x1:"12",y1:"16",x2:"12.01",y2:"16"})],s,c),
 };
 
-const sections=[
+const SECTIONS=[
   {id:1,title:'Project Overview',icon:Icons.FileText},
-  {id:2,title:'Development Stage',icon:Icons.Wrench},
-  {id:3,title:'Delivery History',icon:Icons.Truck},
-  {id:4,title:'Content Inventory',icon:Icons.Layers},
-  {id:5,title:'Development Lift',icon:Icons.Cog},
-  {id:6,title:'Production Requirements',icon:Icons.Wrench},
+  {id:2,title:'Curriculum Design',icon:Icons.Wrench},
+  {id:3,title:'Content Inventory',icon:Icons.Layers},
+  {id:4,title:'Delivery History',icon:Icons.Truck},
+  {id:5,title:'Learning Resource Development',icon:Icons.Cog},
+  {id:6,title:'Learning resource & functionality requirements',icon:Icons.Wrench},
   {id:7,title:'Approvals & Governance',icon:Icons.Shield},
 ];
 
 const LM={
-  existingContent:{slides:'Complete slide deck(s) ready to use live',recorded:'Recorded lectures/webinars ready to transfer',written:'Written materials',assessments:'Assessment and quiz questions, answers, and feedback',rubric:'Rubric complete with criteria, performance levels, and descriptors',outcomes:'Learning outcomes',media:'Media including graphics, images or audio files',marketing:'Marketing copy',nothing:'Nothing exists yet'},
-  contentStage:{concept:'Concept only',outline:'Outline exists',developed:'Fully developed (not digitised)',f2f:'Previously delivered face-to-face',online:'Previously delivered online',credentialed:'Previously credentialed/accredited'},
+  existingContent:{slides:'Presentation slides ready for live delivery, slide deck(s) ready to transfer',recorded:'iLecture / recorded presentations / demonstration videos ready for embedding',written:'Text based materials (manuals, PDFs, notes)',assessments:'Formative assessment tasks',summative:'Summative assessment tasks',rubric:'Marking rubric complete with criteria, performance levels, and descriptors',media:'Media resources including graphics, diagrams, case study videos or interactive objects',marketing:'Marketing copy',nothing:'Nothing exists yet'},
+  contentStage:{concept:'Concept only',outline:'Unit or Course outline exists for reuse or adaptation',developed:'Newly developed curriculum design',credentialed:'Previously approved/accredited'},
   deliveredBefore:{no:'No – new offering',f2f:'Yes – face-to-face',hybrid:'Yes – hybrid or blended delivery',sync:'Yes – online synchronous (live sessions via Zoom, etc.)',async:'Yes – online asynchronous (self-paced, no live component)'},
-  developmentLift:{minimal:'Minimal – reformatting/digitisation',moderate:'Moderate – rewrite for online',significant:'Significant – substantial new authoring',scratch:'Full build – no existing content'},
-  productionElements:{lms:'LMS build only',video:'Video production',animation:'Animation/motion graphics',interactive:'Interactive learning objects',sme:'External SME interviews',credential:'Credential/badge integration',credit:'Academic approval processes',partner:'Industry partner sign-off',legal:'Legal/IP clearance'},
-  approvals:{faculty:'Faculty approval',academic:'Academic Board / credit-bearing',industry:'Industry sign-off',marketing:'Marketing sign-off',none:'None identified'},
+  developmentLift:{minimal:'Minimal – reformatting/digitisation/light review and edit',moderate:'Moderate – repurpose for online/microcredential',significant:'Significant – substantial new authoring, revise content, instruction, edit/create media, add activities',scratch:'Full build – no existing content'},
+  productionElements:{lms:'LMS build only',video:'Video production',animation:'Animation/motion graphics',interactive:'Interactive learning objects',sme:'External subject matter interviews',credential:'Credential/badge integration',comms:'Lecturer/Student communication channels',assessment:'Assessment submission points, student peer review, groupwork, scheduled live online presentations, closed captions'},
+  approvals:{faculty:'Faculty/School/Business Manager',academic:'Academic Board / credit-bearing',legal:'Legal / IP',industry:'Industry sign-off',research:'Research ethics',marketing:'Marketing sign-off',none:'None identified'},
   marketingDeadline:{yes:'Yes',no:'No',tbd:'TBD'}
 };
+
+const SEC2_OPTS=[['concept','Concept only'],['outline','Unit or Course outline exists for reuse or adaptation'],['developed',null],['credentialed','Previously approved/accredited']];
+const SEC3_OPTS=[['slides','Presentation slides ready for live delivery, slide deck(s) ready to transfer'],['recorded','iLecture / recorded presentations / demonstration videos ready for embedding'],['written','Text based materials (manuals, PDFs, notes)'],['assessments','Formative (no grade bearing quizzes, student reflection, peer-learning, feedback for learning) assessment tasks'],['summative','Summative (grade bearing assignment, submission, report) assessment tasks'],['rubric','Marking rubric complete with criteria, performance levels, and descriptors'],['media','Media resources including graphics, diagrams, case study videos or interactive objects'],['marketing','Marketing copy']];
+const SEC4_OPTS=[['no','No – new offering'],['f2f','Yes – face-to-face'],['hybrid','Yes – hybrid or blended delivery'],['sync','Yes – online synchronous (live sessions via Zoom, etc.)'],['async','Yes – online asynchronous (self-paced, no live component)']];
+const SEC5_OPTS=[['minimal','Minimal – reformatting/digitisation/light review and edit'],['moderate','Moderate – repurpose for online/microcredential'],['significant','Significant – substantial new authoring, revise content, instruction, edit/create media, add activities'],['scratch','Full build – no existing content']];
+const SEC6_OPTS=[['lms','LMS build only (text, quizzes, downloads, content structure, alternate accessibility formats, instructions)'],['video','Video production (studio or on location) – Presentation/Demonstration/closed captions'],['animation','Animation/motion graphics'],['interactive','Interactive learning objects'],['sme','External subject matter interviews'],['credential','Credential/badge integration'],['comms','Lecturer/Student communication channels'],['assessment','Assessment submission points, student peer review, groupwork, scheduled live online presentations, closed captions']];
+const SEC7_APPROVAL_OPTS=[['faculty','Faculty/School/Business Manager'],['academic','Academic Board / credit-bearing'],['legal','Legal / IP'],['industry','Industry sign-off'],['research','Research ethics'],['marketing','Marketing sign-off'],['none','None identified']];
+const SEC7_DEADLINE_OPTS=[['yes','Yes'],['no','No'],['tbd','TBD']];
+const INFOTIP_TEXT='Information sources: including textbooks, research publications, Learning framework, Learning outcomes, Graduate attributes, Industry accreditation alignment, Assessment design, Course mapping';
+const CM_SCORE={credentialed:4,developed:0.5,outline:1,concept:0};
+const DL_SCORE={minimal:4,moderate:2,significant:1,scratch:0};
+const PC_PENALTY=['video','animation','sme','interactive','comms','assessment'];
+const CA_KEYS=['slides','assessments','summative','recorded'];
 const gl=(map,val)=>LM[map]?.[val]||'';
 const gls=(map,arr)=>arr.length?arr.map(v=>gl(map,v)).filter(Boolean).join(', '):null;
+const BLANK={projectName:'',faculty:'',launchDate:'',existingContent:[],contentStage:'',deliveredBefore:'',deliveryDetails:'',developmentLift:'',productionElements:[],approvals:[],marketingDeadline:'',marketingDate:''};
 
-const Radio=({checked,onChange,label})=>h('div',{onClick:onChange,className:"flex ic g3",style:{padding:12,borderRadius:8,cursor:'pointer',background:checked?'#eef2ff':'transparent',border:checked?'1px solid #a5b4fc':'1px solid transparent',marginBottom:4,transition:'all 0.2s'}},
+const Radio=memo(({checked,onChange,label})=>h('div',{onClick:onChange,className:"flex ic g3",style:{padding:12,borderRadius:8,cursor:'pointer',background:checked?'#eef2ff':'transparent',border:checked?'1px solid #a5b4fc':'1px solid transparent',marginBottom:4,transition:'all 0.2s'}},
   h('div',{style:{width:20,height:20,borderRadius:'50%',border:checked?'6px solid #4f46e5':'2px solid #d1d5db',background:'#fff',flexShrink:0,transition:'all 0.2s'}}),
   h('span',{style:{color:checked?'#312e81':'#374151',fontWeight:checked?600:400}},label)
-);
+));
 
-const Checkbox=({checked,onChange,label,disabled})=>h('div',{onClick:disabled?undefined:onChange,className:"flex ic g3",style:{padding:12,borderRadius:8,cursor:disabled?'not-allowed':'pointer',background:checked?'#eef2ff':'transparent',border:checked?'1px solid #a5b4fc':'1px solid transparent',marginBottom:4,transition:'all 0.2s',opacity:disabled?0.4:1}},
+const Checkbox=memo(({checked,onChange,label,disabled})=>h('div',{onClick:disabled?undefined:onChange,className:"flex ic g3",style:{padding:12,borderRadius:8,cursor:disabled?'not-allowed':'pointer',background:checked?'#eef2ff':'transparent',border:checked?'1px solid #a5b4fc':'1px solid transparent',marginBottom:4,transition:'all 0.2s',opacity:disabled?0.4:1}},
   h('div',{style:{width:20,height:20,borderRadius:4,border:checked?'none':'2px solid #d1d5db',background:checked?'#4f46e5':'#fff',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.2s'}},
     checked&&h('svg',{width:12,height:12,viewBox:"0 0 12 12",fill:"none"},h('path',{d:"M2 6l3 3 5-5",stroke:"#fff",strokeWidth:"2",strokeLinecap:"round",strokeLinejoin:"round"}))
   ),
   h('span',{style:{color:checked?'#312e81':disabled?'#9ca3af':'#374151',fontWeight:checked?600:400}},label)
-);
+));
 
-const ScoreBar=({label,value,max,color})=>h('div',{style:{marginBottom:16}},
+const ScoreBar=memo(({label,value,max,color})=>h('div',{style:{marginBottom:16}},
   h('div',{className:"flex jb",style:{marginBottom:6}},
     h('span',{style:{fontSize:14,fontWeight:500,color:'#374151'}},label),
     h('span',{style:{fontSize:14,fontWeight:700,color}},`${value}/${max}`)
@@ -81,22 +98,38 @@ const ScoreBar=({label,value,max,color})=>h('div',{style:{marginBottom:16}},
   h('div',{style:{height:10,background:'#e5e7eb',borderRadius:999,overflow:'hidden'}},
     h('div',{style:{height:'100%',width:`${(value/max)*100}%`,background:color,borderRadius:999,transition:'width 0.8s ease'}})
   )
-);
+));
 
-const SummaryRow=({label,value,muted})=>h('div',{style:{padding:'12px 0',borderBottom:'1px solid #f1f5f9'}},
+const SummaryRow=memo(({label,value,muted})=>h('div',{style:{padding:'12px 0',borderBottom:'1px solid #f1f5f9'}},
   h('div',{style:{fontSize:12,fontWeight:600,color:'#6b7280',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:4}},label),
   h('div',{style:{fontSize:15,fontWeight:500,color:muted?'#9ca3af':'#1e1b4b'}},value)
-);
+));
 
-const ValidationMsg=({msg})=>h('div',{className:"flex ic g2",style:{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'10px 14px',marginTop:12}},
+const ValidationMsg=memo(({msg})=>h('div',{className:"flex ic g2",style:{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'10px 14px',marginTop:12}},
   h(Icons.AlertCircle,{size:16,color:"#dc2626"}),
   h('span',{style:{fontSize:13,fontWeight:500,color:'#dc2626'}},msg)
-);
+));
+
+const InfoTip=memo(({text})=>{
+  const [show,setShow]=useState(false);
+  const toggle=useCallback(e=>{e.stopPropagation();setShow(s=>!s);},[]);
+  return h('span',{style:{position:'relative',display:'inline-flex',alignItems:'center',marginLeft:6}},
+    h('span',{onClick:toggle,style:{cursor:'pointer',display:'inline-flex',alignItems:'center'}},
+      h('svg',{width:15,height:15,viewBox:"0 0 24 24",fill:"none",stroke:"#6366f1",strokeWidth:"2",strokeLinecap:"round",strokeLinejoin:"round"},
+        h('circle',{cx:"12",cy:"12",r:"10"}),h('line',{x1:"12",y1:"16",x2:"12",y2:"12"}),h('line',{x1:"12",y1:"8",x2:"12.01",y2:"8"})
+      )
+    ),
+    show&&h('span',{style:{position:'absolute',left:20,top:-8,zIndex:100,background:'#1e1b4b',color:'#fff',fontSize:12,padding:'10px 14px',borderRadius:8,width:280,lineHeight:1.6,boxShadow:'0 4px 16px rgba(0,0,0,0.18)',whiteSpace:'normal'}},text)
+  );
+});
+
+const DevLabel=h('span',{className:'flex ic',style:{gap:4}},'Newly developed curriculum design',h(InfoTip,{text:INFOTIP_TEXT}));
 
 function InfoPanel(){
   const [open,setOpen]=useState(false);
+  const toggle=useCallback(()=>setOpen(o=>!o),[]);
   return h('div',{style:{maxWidth:640,margin:'0 auto',textAlign:'left'}},
-    h('div',{onClick:()=>setOpen(!open),className:"flex ic jc g2",style:{cursor:'pointer',padding:'8px 16px',borderRadius:999,background:'#fff',display:'inline-flex',boxShadow:'0 1px 4px rgba(0,0,0,0.06)',margin:'0 auto'}},
+    h('div',{onClick:toggle,className:"flex ic jc g2",style:{cursor:'pointer',padding:'8px 16px',borderRadius:999,background:'#fff',display:'inline-flex',boxShadow:'0 1px 4px rgba(0,0,0,0.06)',margin:'0 auto'}},
       h('svg',{width:16,height:16,viewBox:"0 0 24 24",fill:"none",stroke:"#6366f1",strokeWidth:"2",strokeLinecap:"round",strokeLinejoin:"round"},
         h('circle',{cx:"12",cy:"12",r:"10"}),h('line',{x1:"12",y1:"16",x2:"12",y2:"12"}),h('line',{x1:"12",y1:"8",x2:"12.01",y2:"8"})
       ),
@@ -105,17 +138,16 @@ function InfoPanel(){
         h('polyline',{points:"6 9 12 15 18 9"})
       )
     ),
-    h('div',{style:{maxHeight:open?300:0,overflow:'hidden',transition:'max-height 0.35s ease, opacity 0.3s ease',opacity:open?1:0}},
+    h('div',{style:{maxHeight:open?500:0,overflow:'hidden',transition:'max-height 0.35s ease, opacity 0.3s ease',opacity:open?1:0}},
       h('div',{style:{background:'#fff',borderRadius:12,padding:'16px 24px',marginTop:12,boxShadow:'0 2px 8px rgba(0,0,0,0.04)'}},
-        h('p',{style:{fontSize:14,color:'#4b5563',lineHeight:1.6,margin:'0 0 10px'}},"This quick self-check is designed to help you understand how ready your project is for a Short Form Learning build — and give you a realistic sense of the timeline involved."),
-        h('p',{style:{fontSize:14,color:'#4b5563',lineHeight:1.6,margin:'0 0 10px'}},"It takes around 3–5 minutes to complete. You'll be asked about your existing content, how far along it is, and what production or approval steps may be needed. At the end, you'll receive a readiness score and an estimated development timeframe."),
-        h('p',{style:{fontSize:14,color:'#4b5563',lineHeight:1.6,margin:0}},"This is not a formal scoping process and doesn't commit you to anything. It's simply a way to identify any gaps early so that when you meet with the Learning Design team, you can hit the ground running.")
+        h('p',{style:{fontSize:14,color:'#4b5563',lineHeight:1.6,margin:'0 0 10px'}},"This questionnaire takes approximately 3–5 minutes to complete."),
+        h('p',{style:{fontSize:14,color:'#4b5563',lineHeight:1.6,margin:'0 0 10px'}},"It is designed to help you evaluate your project's readiness for a Short Form Learning build by identifying any gaps that may require attention. It will also provide an estimated project timeline and generate a summary that you can copy and paste into your Short Form Learning EOI."),
+        h('p',{style:{fontSize:14,color:'#4b5563',lineHeight:1.6,margin:'0 0 10px'}},"You will be asked about the practical elements of your curriculum design, including whether learning outcomes are clearly defined, content is structured, learning activities are identified, and appropriate learning media (e.g., video, scenarios, quizzes, job aids) have been selected or developed. The questionnaire will also assess how complete these materials are and whether any production, review, or approval steps remain outstanding."),
+        h('p',{style:{fontSize:14,color:'#4b5563',lineHeight:1.6,margin:0,fontStyle:'italic'}},"Note: This is not a formal scoping exercise. It is intended for your internal planning purposes only.")
       )
     )
   );
 }
-
-const BLANK={projectName:'',faculty:'',launchDate:'',existingContent:[],contentStage:'',deliveredBefore:'',deliveryDetails:'',developmentLift:'',productionElements:[],approvals:[],marketingDeadline:''};
 
 function App(){
   const [fd,setFd]=useState(BLANK);
@@ -127,71 +159,64 @@ function App(){
   const [errors,setErrors]=useState({});
   const [shakeKey,setShakeKey]=useState(0);
 
-  const upd=patch=>setFd(p=>({...p,...patch}));
-
-  const toggleContent=v=>{
+  const upd=useCallback(patch=>setFd(p=>({...p,...patch})),[]);
+  const toggleContent=useCallback(v=>{
     setErrors(p=>({...p,existingContent:null}));
-    if(v==='nothing') upd({existingContent:fd.existingContent.includes('nothing')?[]:['nothing']});
-    else upd({existingContent:fd.existingContent.includes(v)?fd.existingContent.filter(x=>x!==v):[...fd.existingContent.filter(x=>x!=='nothing'),v]});
-  };
-  const toggleField=(f,v)=>upd({[f]:fd[f].includes(v)?fd[f].filter(x=>x!==v):[...fd[f],v]});
-
-  const validate=s=>{
+    setFd(p=>{
+      if(v==='nothing') return {...p,existingContent:p.existingContent.includes('nothing')?[]:['nothing']};
+      return {...p,existingContent:p.existingContent.includes(v)?p.existingContent.filter(x=>x!==v):[...p.existingContent.filter(x=>x!=='nothing'),v]};
+    });
+  },[]);
+  const toggleField=useCallback((f,v)=>setFd(p=>({...p,[f]:p[f].includes(v)?p[f].filter(x=>x!==v):[...p[f],v]})),[]);
+  const validate=useCallback(s=>{
     const e={};
     if(s===1&&!fd.projectName.trim()) e.projectName='Project name is required';
     if(s===2&&!fd.contentStage) e.contentStage='Please select a content development stage';
-    if(s===3&&!fd.deliveredBefore) e.deliveredBefore='Please select a delivery history option';
+    if(s===4&&!fd.deliveredBefore) e.deliveredBefore='Please select a delivery history option';
     if(s===5&&!fd.developmentLift) e.developmentLift='Please select a development lift option';
     return e;
-  };
-
-  const tryNav=t=>{
+  },[fd.projectName,fd.contentStage,fd.deliveredBefore,fd.developmentLift]);
+  const tryNav=useCallback(t=>{
     const e=validate(sec);
     if(Object.keys(e).length){setErrors(e);setShakeKey(k=>k+1);return;}
     setErrors({});setSec(t);
-  };
-
-  const calcScore=()=>{
+  },[validate,sec]);
+  const calcScore=useCallback(()=>{
     const e=validate(sec);
     if(Object.keys(e).length){setErrors(e);setShakeKey(k=>k+1);return;}
     setErrors({});
     const content=fd.existingContent.length?fd.existingContent:['nothing'];
-    const cm={credentialed:4,online:3,f2f:2,developed:1.5,outline:1,concept:0}[fd.contentStage]||0;
-    const ca=['slides','assessments','outcomes','recorded'].filter(x=>content.includes(x)).length;
-    const dl={minimal:4,moderate:2,significant:1,scratch:0}[fd.developmentLift]||0;
-    const pc=Math.max(0,4-['video','animation','sme','credit'].filter(x=>fd.productionElements.includes(x)).length);
+    const cm=CM_SCORE[fd.contentStage]||0;
+    const ca=CA_KEYS.filter(x=>content.includes(x)).length;
+    const dl=DL_SCORE[fd.developmentLift]||0;
+    const pc=Math.max(0,4-PC_PENALTY.filter(x=>fd.productionElements.includes(x)).length);
     const total=cm+ca+dl+pc;
     const [category,timeline,color,bg]=total>=13?['Fast Track','4-6 weeks','#059669','#ecfdf5']:total>=9?['Accelerated','6-10 weeks','#2563eb','#eff6ff']:total>=5?['Standard Build','10-14 weeks','#d97706','#fffbeb']:['Full Development','14-20+ weeks','#dc2626','#fef2f2'];
     setScore({total,cm,ca,dl,pc,category,timeline,color,bg});
     setShowResults(true);setTab('score');
-  };
-
-  const buildCopy=()=>{
-    if(!score) return '';
+  },[validate,sec,fd]);
+  const doCopy=useCallback(()=>{
+    if(!score) return;
     const content=fd.existingContent.length?fd.existingContent:['nothing'];
-    return [
-      'SHORT FORM LEARNING - PROJECT READINESS CHECK',
-      '=============================================','',
+    const t=[
+      'SHORT FORM LEARNING - PROJECT READINESS CHECK','=============================================','',
       `Overall Score: ${score.total}/16`,`Category: ${score.category}`,`Estimated Timeline: ${score.timeline}`,'',
-      'SCORE BREAKDOWN',
-      `  Content Maturity:      ${score.cm}/4`,`  Content Availability:  ${score.ca}/4`,`  Development Lift:      ${score.dl}/4`,`  Production Simplicity: ${score.pc}/4`,'',
+      'SCORE BREAKDOWN',`  Content Maturity:      ${score.cm}/4`,`  Content Availability:  ${score.ca}/4`,`  Development Lift:      ${score.dl}/4`,`  Production Simplicity: ${score.pc}/4`,'',
       'RESPONSE SUMMARY','---------------------------------------------',
       `Project Name: ${fd.projectName||'—'}`,`Faculty / Industry Partner: ${fd.faculty||'—'}`,`Target Launch Date: ${fd.launchDate||'—'}`,
       `Content Stage: ${gl('contentStage',fd.contentStage)||'—'}`,`Delivered Before: ${gl('deliveredBefore',fd.deliveredBefore)||'—'}`,
       ...(fd.deliveredBefore&&fd.deliveredBefore!=='no'?[`Delivery Details: ${fd.deliveryDetails||'—'}`]:[]),
       `Existing Content: ${gls('existingContent',content)||'—'}`,`Development Lift: ${gl('developmentLift',fd.developmentLift)||'—'}`,
       `Production Elements: ${gls('productionElements',fd.productionElements)||'—'}`,`Approvals Required: ${gls('approvals',fd.approvals)||'—'}`,
-      `Marketing Deadline Committed: ${gl('marketingDeadline',fd.marketingDeadline)||'—'}`
+      `Marketing Deadline Committed: ${gl('marketingDeadline',fd.marketingDeadline)||'—'}`,
+      ...(fd.marketingDate?[`Marketing Date: ${fd.marketingDate}`]:[]),
     ].join('\n');
-  };
-
-  const doCopy=()=>{
-    const t=buildCopy();
     (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).catch(()=>{const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');document.body.removeChild(a);});
     setCopied(true);setTimeout(()=>setCopied(false),2000);
-  };
+  },[score,fd]);
+  const reset=useCallback(()=>{setFd(BLANK);setShowResults(false);setScore(null);setSec(1);setCopied(false);setErrors({});},[]);
 
-  const reset=()=>{setFd(BLANK);setShowResults(false);setScore(null);setSec(1);setCopied(false);setErrors({});};
+  const iS={width:'100%',padding:'10px 14px',borderRadius:10,fontSize:15,outline:'none',boxSizing:'border-box',fontFamily:'inherit'};
 
   if(showResults&&score){
     const content=fd.existingContent.length?fd.existingContent:['nothing'];
@@ -248,7 +273,8 @@ function App(){
                 h(SummaryRow,{label:"Development Lift",value:gl('developmentLift',fd.developmentLift)||'—',muted:!fd.developmentLift}),
                 h(SummaryRow,{label:"Production Elements",value:gls('productionElements',fd.productionElements)||'—',muted:!fd.productionElements.length}),
                 h(SummaryRow,{label:"Approvals Required",value:gls('approvals',fd.approvals)||'—',muted:!fd.approvals.length}),
-                h(SummaryRow,{label:"Marketing Deadline Committed",value:gl('marketingDeadline',fd.marketingDeadline)||'—',muted:!fd.marketingDeadline})
+                h(SummaryRow,{label:"Marketing Deadline Committed",value:gl('marketingDeadline',fd.marketingDeadline)||'—',muted:!fd.marketingDeadline}),
+                fd.marketingDate&&h(SummaryRow,{label:"Marketing Date",value:fd.marketingDate})
               )
             ),
             h('div',{className:"flex jb ic",style:{marginTop:24,gap:12}},
@@ -263,9 +289,7 @@ function App(){
     );
   }
 
-  const iS={width:'100%',padding:'10px 14px',borderRadius:10,fontSize:15,outline:'none',boxSizing:'border-box',fontFamily:'inherit'};
   const ns=fd.existingContent.includes('nothing');
-
   const renderSec=()=>{
     switch(sec){
       case 1:return h('div',null,
@@ -285,66 +309,63 @@ function App(){
       );
       case 2:return h('div',null,
         h('label',{style:{display:'block',fontSize:14,fontWeight:600,color:'#374151',marginBottom:12}},"What stage is the content currently at? ",h('span',{style:{color:'#dc2626'}},"*")),
-        ...[['concept','Concept only'],['outline','Outline exists'],['developed','Fully developed academic content (not digitised)'],['f2f','Previously delivered face-to-face'],['online','Previously delivered online'],['credentialed','Previously credentialed/accredited']].map(([v,l])=>
-          h(Radio,{key:v,checked:fd.contentStage===v,onChange:()=>{upd({contentStage:v});if(errors.contentStage)setErrors(p=>({...p,contentStage:null}));},label:l})
-        ),
+        ...SEC2_OPTS.map(([v,l])=>h(Radio,{key:v,checked:fd.contentStage===v,onChange:()=>{upd({contentStage:v});if(errors.contentStage)setErrors(p=>({...p,contentStage:null}));},label:l||DevLabel})),
         errors.contentStage&&h(ValidationMsg,{msg:errors.contentStage})
       );
       case 3:return h('div',null,
-        h('label',{style:{display:'block',fontSize:14,fontWeight:600,color:'#374151',marginBottom:12}},"Has this content been delivered before? ",h('span',{style:{color:'#dc2626'}},"*")),
-        ...[['no','No – new offering'],['f2f','Yes – face-to-face'],['hybrid','Yes – hybrid or blended delivery'],['sync','Yes – online synchronous (live sessions via Zoom, etc.)'],['async','Yes – online asynchronous (self-paced, no live component)']].map(([v,l])=>
-          h(Radio,{key:v,checked:fd.deliveredBefore===v,onChange:()=>{upd({deliveredBefore:v});if(errors.deliveredBefore)setErrors(p=>({...p,deliveredBefore:null}));},label:l})
-        ),
+        h('label',{style:{display:'block',fontSize:14,fontWeight:600,color:'#374151',marginBottom:12}},"What content has already been created for this course?"),
+        ...SEC3_OPTS.map(([v,l])=>h(Checkbox,{key:v,checked:fd.existingContent.includes(v),onChange:()=>toggleContent(v),label:l,disabled:ns})),
+        h(Checkbox,{checked:ns,onChange:()=>toggleContent('nothing'),label:"Nothing exists yet"})
+      );
+      case 4:return h('div',null,
+        h('label',{style:{display:'block',fontSize:14,fontWeight:600,color:'#374151',marginBottom:12}},"Has the learning material been delivered before? ",h('span',{style:{color:'#dc2626'}},"*")),
+        ...SEC4_OPTS.map(([v,l])=>h(Radio,{key:v,checked:fd.deliveredBefore===v,onChange:()=>{upd({deliveredBefore:v});if(errors.deliveredBefore)setErrors(p=>({...p,deliveredBefore:null}));},label:l})),
         errors.deliveredBefore&&h(ValidationMsg,{msg:errors.deliveredBefore}),
         fd.deliveredBefore&&fd.deliveredBefore!=='no'&&h('div',{style:{marginTop:16}},
           h('label',{style:{display:'block',fontSize:14,fontWeight:600,color:'#374151',marginBottom:6}},"Duration & audience details"),
           h('textarea',{style:{...iS,border:'1px solid #d1d5db',minHeight:80,resize:'vertical'},value:fd.deliveryDetails,onChange:e=>upd({deliveryDetails:e.target.value}),placeholder:"E.g., 12-week course, 150 students"})
         )
       );
-      case 4:return h('div',null,
-        h('label',{style:{display:'block',fontSize:14,fontWeight:600,color:'#374151',marginBottom:12}},"What content have you already created for this course?"),
-        ...[['slides','Complete slide deck(s) ready to use live'],['recorded','Recorded lectures/webinars ready to transfer'],['written','Written materials (manuals, PDFs, notes)'],['assessments','Assessment and quiz questions, answers, and feedback'],['rubric','Rubric complete with criteria, performance levels, and descriptors'],['outcomes','Learning outcomes'],['media','Media including graphics, images or audio files'],['marketing','Marketing copy']].map(([v,l])=>
-          h(Checkbox,{key:v,checked:fd.existingContent.includes(v),onChange:()=>toggleContent(v),label:l,disabled:ns})
-        ),
-        h(Checkbox,{checked:ns,onChange:()=>toggleContent('nothing'),label:"Nothing exists yet"})
-      );
       case 5:return h('div',null,
-        h('label',{style:{display:'block',fontSize:14,fontWeight:600,color:'#374151',marginBottom:12}},"How much new content development is required? ",h('span',{style:{color:'#dc2626'}},"*")),
-        ...[['minimal','Minimal – reformatting/digitisation'],['moderate','Moderate – rewrite for online/microcredential'],['significant','Significant – substantial new authoring'],['scratch','Full build – no existing content']].map(([v,l])=>
-          h(Radio,{key:v,checked:fd.developmentLift===v,onChange:()=>{upd({developmentLift:v});if(errors.developmentLift)setErrors(p=>({...p,developmentLift:null}));},label:l})
-        ),
+        h('label',{style:{display:'block',fontSize:14,fontWeight:600,color:'#374151',marginBottom:12}},"How much resource development would be required? ",h('span',{style:{color:'#dc2626'}},"*")),
+        ...SEC5_OPTS.map(([v,l])=>h(Radio,{key:v,checked:fd.developmentLift===v,onChange:()=>{upd({developmentLift:v});if(errors.developmentLift)setErrors(p=>({...p,developmentLift:null}));},label:l})),
         errors.developmentLift&&h(ValidationMsg,{msg:errors.developmentLift})
       );
       case 6:return h('div',null,
-        h('label',{style:{display:'block',fontSize:14,fontWeight:600,color:'#374151',marginBottom:12}},"Online courses can include a variety of content formats. Which of the following could you see working effectively for your learning content?"),
-        ...[['lms','LMS build only (text, quizzes, downloads)'],['video','Video production (studio or on location)'],['animation','Animation/motion graphics'],['interactive','Interactive learning objects'],['sme','External SME interviews'],['credential','Credential/badge integration'],['credit','Academic approval processes'],['partner','Industry partner sign-off'],['legal','Legal/IP clearance']].map(([v,l])=>
-          h(Checkbox,{key:v,checked:fd.productionElements.includes(v),onChange:()=>toggleField('productionElements',v),label:l})
-        )
+        h('label',{style:{display:'block',fontSize:14,fontWeight:600,color:'#374151',marginBottom:12}},"Which of the following do you believe would be required for successful delivery?"),
+        ...SEC6_OPTS.map(([v,l])=>h(Checkbox,{key:v,checked:fd.productionElements.includes(v),onChange:()=>toggleField('productionElements',v),label:l}))
       );
       case 7:return h('div',null,
         h('label',{style:{display:'block',fontSize:14,fontWeight:600,color:'#374151',marginBottom:12}},"Approvals required?"),
-        ...[['faculty','Faculty approval'],['academic','Academic Board / credit-bearing'],['industry','Industry sign-off'],['marketing','Marketing sign-off'],['none','None identified']].map(([v,l])=>
-          h(Checkbox,{key:v,checked:fd.approvals.includes(v),onChange:()=>toggleField('approvals',v),label:l})
-        ),
+        ...SEC7_APPROVAL_OPTS.map(([v,l])=>h(Checkbox,{key:v,checked:fd.approvals.includes(v),onChange:()=>toggleField('approvals',v),label:l})),
         h('div',{style:{marginTop:20}},
           h('label',{style:{display:'block',fontSize:14,fontWeight:600,color:'#374151',marginBottom:12}},"Marketing launch date committed?"),
-          ...[['yes','Yes'],['no','No'],['tbd','TBD']].map(([v,l])=>
-            h(Radio,{key:v,checked:fd.marketingDeadline===v,onChange:()=>upd({marketingDeadline:v}),label:l})
+          ...SEC7_DEADLINE_OPTS.map(([v,l])=>h(Radio,{key:v,checked:fd.marketingDeadline===v,onChange:()=>upd({marketingDeadline:v,marketingDate:''}),label:l})),
+          fd.marketingDeadline==='yes'&&h('div',{style:{marginTop:12}},
+            h('label',{style:{display:'block',fontSize:14,fontWeight:600,color:'#374151',marginBottom:6}},"Launch date ",h('span',{style:{color:'#dc2626'}},"*")),
+            h('input',{type:"date",style:{...iS,border:'1px solid #d1d5db'},value:fd.marketingDate,onChange:e=>upd({marketingDate:e.target.value})})
+          ),
+          fd.marketingDeadline==='tbd'&&h('div',{style:{marginTop:12}},
+            h('label',{style:{display:'block',fontSize:14,fontWeight:600,color:'#374151',marginBottom:6}},"Estimated launch date (optional)"),
+            h('input',{type:"date",style:{...iS,border:'1px solid #d1d5db'},value:fd.marketingDate,onChange:e=>upd({marketingDate:e.target.value})})
           )
         )
       );
     }
   };
 
-  const SI=sections[sec-1].icon;
+  const SI=SECTIONS[sec-1].icon;
   const prog=(sec/7)*100;
 
   return h('div',{style:{minHeight:'100vh',background:'linear-gradient(135deg,#eef2ff 0%,#e0e7ff 50%,#c7d2fe 100%)',padding:'24px 16px'}},
     h('div',{style:{maxWidth:800,margin:'0 auto'}},
       h('div',{style:{textAlign:'center',marginBottom:32}},
+        h('div',{style:{display:'flex',justifyContent:'center',marginBottom:20}},
+          h('img',{src:LOGO,alt:"Curtin University",style:{height:60,width:'auto'}})
+        ),
         h('div',{style:{display:'inline-flex',alignItems:'center',justifyContent:'center',width:56,height:56,borderRadius:16,background:'#4f46e5',marginBottom:12}},h(Icons.FileText,{size:28,color:"#fff"})),
         h('h1',{style:{fontSize:28,fontWeight:800,color:'#1e1b4b',margin:'0 0 4px'}},"Short Form Learning"),
-        h('p',{style:{fontSize:15,color:'#6366f1',margin:'0 0 16px',fontWeight:500}},"Project Readiness Check"),
+        h('p',{style:{fontSize:22,color:'#6366f1',margin:'0 0 16px',fontWeight:600}},"Project Readiness Check"),
         h(InfoPanel)
       ),
       h('div',{style:{background:'#fff',borderRadius:16,padding:'16px 24px',marginBottom:24,boxShadow:'0 4px 20px rgba(0,0,0,0.04)'}},
@@ -357,12 +378,12 @@ function App(){
         )
       ),
       h('div',{className:"flex g2 fw",style:{marginBottom:24,justifyContent:'center'}},
-        ...sections.map(s=>h('button',{key:s.id,onClick:()=>tryNav(s.id),style:{padding:'6px 14px',borderRadius:999,border:'none',fontSize:13,fontWeight:600,cursor:'pointer',background:sec===s.id?'#4f46e5':'#fff',color:sec===s.id?'#fff':'#6b7280',boxShadow:sec===s.id?'0 4px 12px rgba(79,70,229,0.3)':'0 1px 4px rgba(0,0,0,0.06)',transition:'all 0.2s',fontFamily:'inherit'}},s.id))
+        ...SECTIONS.map(s=>h('button',{key:s.id,onClick:()=>tryNav(s.id),style:{padding:'6px 14px',borderRadius:999,border:'none',fontSize:13,fontWeight:600,cursor:'pointer',background:sec===s.id?'#4f46e5':'#fff',color:sec===s.id?'#fff':'#6b7280',boxShadow:sec===s.id?'0 4px 12px rgba(79,70,229,0.3)':'0 1px 4px rgba(0,0,0,0.06)',transition:'all 0.2s',fontFamily:'inherit'}},s.id))
       ),
       h('div',{key:shakeKey,className:Object.keys(errors).some(k=>errors[k])?'shake':'',style:{background:'#fff',borderRadius:16,boxShadow:'0 20px 60px rgba(0,0,0,0.06)',overflow:'hidden'}},
         h('div',{className:"flex ic g3",style:{padding:'20px 28px',borderBottom:'1px solid #e5e7eb'}},
           h('div',{style:{width:40,height:40,borderRadius:10,background:'#eef2ff',display:'flex',alignItems:'center',justifyContent:'center'}},h(SI,{size:20,color:"#4f46e5"})),
-          h('h2',{style:{fontSize:18,fontWeight:700,color:'#1e1b4b',margin:0}},sections[sec-1].title)
+          h('h2',{style:{fontSize:18,fontWeight:700,color:'#1e1b4b',margin:0}},SECTIONS[sec-1].title)
         ),
         h('div',{style:{padding:28}},renderSec()),
         h('div',{className:"flex jb",style:{padding:'16px 28px',borderTop:'1px solid #f3f4f6',gap:12}},
