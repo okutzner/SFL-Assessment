@@ -191,13 +191,14 @@ const ICONS = {
 function calcScore() {
   const fd = state.fd;
   const content = fd.existingContent.length ? fd.existingContent : ['nothing'];
-  const cm = {credentialed:4,developed:0.5,outline:1,concept:0}[fd.contentStage]||0;
+  const cm = {credentialed:4,developed:2,outline:2,concept:0}[fd.contentStage]||0;
   const ca = ['slides','assessments','summative','recorded','written','rubric','media'].filter(x=>content.includes(x)).length;
   const dl = {minimal:4,moderate:2,significant:1,scratch:0}[fd.developmentLift]||0;
-  const pc = Math.max(0,4-['video','animation','sme','interactive','comms','assessment'].filter(x=>fd.productionElements.includes(x)).length);
-  const dh = fd.deliveredBefore && fd.deliveredBefore!=='no' ? 1 : 0;
+  const pc = Math.max(0,4-['video','animation','sme','interactive','comms','assessment','lms','credential'].filter(x=>fd.productionElements.includes(x)).length);
+  const dhMap = {no:0, f2f:1, hybrid:2, sync:2, async:2};
+  const dh = dhMap[fd.deliveredBefore] || 0;
   const total = cm+ca+dl+pc+dh;
-  const [category,timeline,color,bg] = total>=16?['Fast Track','4-6 weeks','#059669','#ecfdf5']:total>=12?['Accelerated','6-10 weeks','#2563eb','#eff6ff']:total>=7?['Standard Build','10-14 weeks','#d97706','#fffbeb']:['Full Development','14-20+ weeks','#dc2626','#fef2f2'];
+  const [category,timeline,color,bg] = total>=17?['Fast Track','4-6 weeks','#059669','#ecfdf5']:total>=12?['Accelerated','6-10 weeks','#2563eb','#eff6ff']:total>=7?['Standard Build','10-14 weeks','#d97706','#fffbeb']:['Full Development','14-20+ weeks','#dc2626','#fef2f2'];
   return {total,cm,ca,dl,pc,dh,category,timeline,color,bg};
 }
 
@@ -219,7 +220,7 @@ function buildCopyText() {
   const content = fd.existingContent.length ? fd.existingContent : ['nothing'];
   return [
     'SHORT FORM LEARNING - PROJECT READINESS CHECK','=============================================','',
-    `Overall Score: ${score.total}/20`,`Category: ${score.category}`,`Estimated Timeline: ${score.timeline}`,'',
+    `Overall Score: ${score.total}/22`,`Category: ${score.category}`,`Estimated Timeline: ${score.timeline}`,'',
     'SCORE BREAKDOWN',
     `  Curriculum Design:     ${score.cm}/4`,`  Content Inventory:     ${score.ca}/7`,`  Delivery Experience:   ${score.dh}/1`,`  Resource Development:  ${score.dl}/4`,`  Production Requirement:${score.pc}/4`,'',
     'RESPONSE SUMMARY','---------------------------------------------',
@@ -387,7 +388,7 @@ function renderResults() {
         <div class="result-hero" style="background:${score.bg};border-bottom:3px solid ${score.color}">
           <div class="result-hero-icon">${ICONS.checkCircle(score.color)}</div>
           <h1>Short Form Learning - Project Readiness Check</h1>
-          <div class="result-score" style="color:${score.color}">${score.total}/20</div>
+          <div class="result-score" style="color:${score.color}">${score.total}/22</div>
           <div class="result-cat" style="color:${score.color}">${score.category}</div>
           <div class="result-timeline">${ICONS.clock} Estimated: ${score.timeline}</div>
         </div>
