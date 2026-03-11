@@ -67,7 +67,7 @@ textarea{min-height:80px;resize:vertical}
 /* Tooltip */
 .tip-wrap{position:relative;display:inline-flex;align-items:center;margin-left:6px}
 .tip-icon{cursor:pointer;display:inline-flex;align-items:center}
-.tip-box{display:none;position:absolute;left:22px;top:-8px;z-index:100;background:#1e1b4b;color:#fff;font-size:12px;padding:10px 14px;border-radius:8px;width:280px;line-height:1.6;box-shadow:0 4px 16px rgba(0,0,0,.18);white-space:normal}
+.tip-box{display:none;position:fixed;z-index:200;background:#1e1b4b;color:#fff;font-size:12px;padding:10px 14px;border-radius:8px;width:260px;max-width:calc(100vw - 32px);line-height:1.6;box-shadow:0 4px 16px rgba(0,0,0,.25);white-space:normal;font-weight:400}
 .tip-wrap.show .tip-box{display:block}
 /* Shake */
 @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
@@ -141,7 +141,7 @@ const SECTIONS = [
   {id:3, title:'Content Inventory', icon:'layers'},
   {id:4, title:'Delivery History', icon:'truck'},
   {id:5, title:'Learning Resource Development', icon:'cog'},
-  {id:6, title:'Learning resource & functionality requirements', icon:'wrench'},
+  {id:6, title:'Delivery Requirements', icon:'wrench'},
   {id:7, title:'Approvals & Governance', icon:'shield'},
 ];
 
@@ -155,11 +155,11 @@ const LM = {
   existingContent:{slides:'Presentation slides ready for live delivery, slide deck(s) ready to transfer',recorded:'iLecture / recorded presentations / demonstration videos ready for embedding',written:'Text based materials (manuals, PDFs, notes)',assessments:'Formative assessment tasks',summative:'Summative assessment tasks',rubric:'Marking rubric complete with criteria, performance levels, and descriptors',media:'Media resources including graphics, diagrams, case study videos or interactive objects',marketing:'Marketing copy',nothing:'Nothing exists yet'}
 };
 
-const SEC2 = [['concept','Concept only'],['outline','Unit or Course outline exists for reuse or adaptation'],['developed','Newly developed curriculum design'],['credentialed','Previously approved/accredited']];
-const SEC3 = [['slides','Presentation slides ready for live delivery, slide deck(s) ready to transfer'],['recorded','iLecture / recorded presentations / demonstration videos ready for embedding'],['written','Text based materials (manuals, PDFs, notes)'],['assessments','Formative (no grade bearing quizzes, student reflection, peer-learning, feedback for learning) assessment tasks'],['summative','Summative (grade bearing assignment, submission, report) assessment tasks'],['rubric','Marking rubric complete with criteria, performance levels, and descriptors'],['media','Media resources including graphics, diagrams, case study videos or interactive objects'],['marketing','Marketing copy']];
+const SEC2 = [['concept','Concept only'],['outline','Unit or Course outline exists for reuse or adaptation'],['developed','Newly designed curriculum'],['credentialed','Previously approved/accredited']];
+const SEC3 = [['slides','Presentation slides ready for live delivery, slide deck(s) ready to transfer'],['recorded','iLecture / recorded presentations / demonstration videos ready for embedding'],['written','Text based materials (manuals, PDFs, notes)'],['assessments','Formative (Non-grade-bearing quizzes, student reflection, peer-learning, feedback for learning) assessment tasks'],['summative','Summative (Graded assignment, submission, report) assessment tasks'],['rubric','Marking rubric complete with criteria, performance levels, and descriptors'],['media','Media resources including graphics, diagrams, case study videos or interactive objects'],['marketing','Marketing copy']];
 const SEC4 = [['no','No – new offering'],['f2f','Yes – face-to-face'],['hybrid','Yes – hybrid or blended delivery'],['sync','Yes – online synchronous (live sessions via Zoom, etc.)'],['async','Yes – online asynchronous (self-paced, no live component)']];
-const SEC5 = [['minimal','Minimal – reformatting/digitisation/light review and edit'],['moderate','Moderate – repurpose for online/microcredential'],['significant','Significant – substantial new authoring, revise content, instruction, edit/create media, add activities'],['scratch','Full build – no existing content']];
-const SEC6 = [['lms','LMS build only (text, quizzes, downloads, content structure, alternate accessibility formats, instructions)'],['video','Video production (studio or on location) – Presentation/Demonstration/closed captions'],['animation','Animation/motion graphics'],['interactive','Interactive learning objects'],['sme','External subject matter interviews'],['credential','Credential/badge integration'],['comms','Lecturer/Student communication channels'],['assessment','Assessment submission points, student peer review, groupwork, scheduled live online presentations, closed captions']];
+const SEC5 = [['scratch','Full build – no existing content'],['significant','Significant – substantial new authoring, revise content, instruction, edit/create media, add activities'],['moderate','Moderate – repurpose for online/microcredential'],['minimal','Minimal – reformatting/digitisation/light review and edit']];
+const SEC6 = [['lms','LMS build (text, quizzes, downloads, content structure, alternate accessibility formats, instructions)'],['video','Video production (studio or on location) – Presentation/Demonstration/closed captions'],['animation','Animation/motion graphics'],['interactive','Interactive learning objects'],['sme','External subject matter interviews'],['credential','Credential/badge integration'],['comms','Lecturer/Student communication channels'],['assessment','Assessment submission points, student peer review, groupwork, scheduled live online presentations, closed captions']];
 const SEC7_APP = [['faculty','Faculty/School/Business Manager'],['academic','Academic Board / credit-bearing'],['legal','Legal / IP'],['industry','Industry sign-off'],['research','Research ethics'],['marketing','Marketing sign-off'],['none','None identified']];
 
 const gl = (map, val) => LM[map]?.[val] || '';
@@ -192,12 +192,13 @@ function calcScore() {
   const fd = state.fd;
   const content = fd.existingContent.length ? fd.existingContent : ['nothing'];
   const cm = {credentialed:4,developed:0.5,outline:1,concept:0}[fd.contentStage]||0;
-  const ca = ['slides','assessments','summative','recorded'].filter(x=>content.includes(x)).length;
+  const ca = ['slides','assessments','summative','recorded','written','rubric','media'].filter(x=>content.includes(x)).length;
   const dl = {minimal:4,moderate:2,significant:1,scratch:0}[fd.developmentLift]||0;
   const pc = Math.max(0,4-['video','animation','sme','interactive','comms','assessment'].filter(x=>fd.productionElements.includes(x)).length);
-  const total = cm+ca+dl+pc;
-  const [category,timeline,color,bg] = total>=13?['Fast Track','4-6 weeks','#059669','#ecfdf5']:total>=9?['Accelerated','6-10 weeks','#2563eb','#eff6ff']:total>=5?['Standard Build','10-14 weeks','#d97706','#fffbeb']:['Full Development','14-20+ weeks','#dc2626','#fef2f2'];
-  return {total,cm,ca,dl,pc,category,timeline,color,bg};
+  const dh = fd.deliveredBefore && fd.deliveredBefore!=='no' ? 1 : 0;
+  const total = cm+ca+dl+pc+dh;
+  const [category,timeline,color,bg] = total>=16?['Fast Track','4-6 weeks','#059669','#ecfdf5']:total>=12?['Accelerated','6-10 weeks','#2563eb','#eff6ff']:total>=7?['Standard Build','10-14 weeks','#d97706','#fffbeb']:['Full Development','14-20+ weeks','#dc2626','#fef2f2'];
+  return {total,cm,ca,dl,pc,dh,category,timeline,color,bg};
 }
 
 // ── Validation ────────────────────────────────────────────────────────────────
@@ -218,9 +219,9 @@ function buildCopyText() {
   const content = fd.existingContent.length ? fd.existingContent : ['nothing'];
   return [
     'SHORT FORM LEARNING - PROJECT READINESS CHECK','=============================================','',
-    `Overall Score: ${score.total}/16`,`Category: ${score.category}`,`Estimated Timeline: ${score.timeline}`,'',
+    `Overall Score: ${score.total}/20`,`Category: ${score.category}`,`Estimated Timeline: ${score.timeline}`,'',
     'SCORE BREAKDOWN',
-    `  Content Maturity:      ${score.cm}/4`,`  Content Availability:  ${score.ca}/4`,`  Development Lift:      ${score.dl}/4`,`  Production Simplicity: ${score.pc}/4`,'',
+    `  Curriculum Design:     ${score.cm}/4`,`  Content Inventory:     ${score.ca}/7`,`  Delivery Experience:   ${score.dh}/1`,`  Resource Development:  ${score.dl}/4`,`  Production Requirement:${score.pc}/4`,'',
     'RESPONSE SUMMARY','---------------------------------------------',
     `Project Name: ${fd.projectName||'—'}`,`Faculty / Industry Partner: ${fd.faculty||'—'}`,`Target Launch Date: ${fd.launchDate||'—'}`,
     `Content Stage: ${gl('contentStage',fd.contentStage)||'—'}`,`Delivered Before: ${gl('deliveredBefore',fd.deliveredBefore)||'—'}`,
@@ -283,9 +284,9 @@ function renderSection(s) {
         <input type="date" id="launchDate" value="${fd.launchDate}">
       </div>`;
     case 2: return `
-      <label class="field-label">What stage is the content currently at? <span class="req">*</span></label>
+      <label class="field-label">How developed is the current curriculum? <span class="req">*</span></label>
       ${SEC2.map(([v,l]) => {
-        if(v==='developed') l = `Newly developed curriculum design <span class="tip-wrap" id="devtip"><span class="tip-icon">${ICONS.info('#6366f1')}</span><span class="tip-box">Information sources: including textbooks, research publications, Learning framework, Learning outcomes, Graduate attributes, Industry accreditation alignment, Assessment design, Course mapping</span></span>`;
+        if(v==='developed') l = `Newly designed curriculum <span class="tip-wrap" id="devtip"><span class="tip-icon">${ICONS.info('#6366f1')}</span><span class="tip-box">Including: learning outcomes, assessment tasks, lesson plans, activities, communication strategy, feedback loops, content and resources such as case studies, textbooks and industry engagement.</span></span>`;
         return radioOpt(v, l, fd.contentStage===v, 'contentStage');
       }).join('')}
       ${e.contentStage?valMsg(e.contentStage):''}`;
@@ -307,14 +308,14 @@ function renderSection(s) {
       ${SEC5.map(([v,l]) => radioOpt(v, l, fd.developmentLift===v, 'developmentLift')).join('')}
       ${e.developmentLift?valMsg(e.developmentLift):''}`;
     case 6: return `
-      <label class="field-label">Which of the following do you believe would be required for successful delivery?</label>
+      <label class="field-label">What elements would further support course delivery?</label>
       ${SEC6.map(([v,l]) => checkOpt(v, l, fd.productionElements.includes(v), 'productionElements', false)).join('')}`;
     case 7: return `
       <label class="field-label">Approvals required?</label>
       ${SEC7_APP.map(([v,l]) => checkOpt(v, l, fd.approvals.includes(v), 'approvals', false)).join('')}
       <div style="margin-top:20px">
         <label class="field-label">Marketing launch date committed?</label>
-        ${[['yes','Yes'],['no','No'],['tbd','TBD']].map(([v,l]) => radioOpt(v, l, fd.marketingDeadline===v, 'marketingDeadline')).join('')}
+        ${[['yes','Yes'],['no','No']].map(([v,l]) => radioOpt(v, l, fd.marketingDeadline===v, 'marketingDeadline')).join('')}
         ${fd.marketingDeadline==='yes'?`
           <div class="field-group" style="margin-top:12px;margin-bottom:0">
             <label class="field-label">Launch date <span class="req">*</span></label>
@@ -338,10 +339,11 @@ function renderResults() {
   const listCol = tab==='summary'?'#4f46e5':'#6b7280';
 
   const scorePanelHTML = `
-    ${scoreBar('Content Maturity', score.cm, 4, '#8b5cf6')}
-    ${scoreBar('Content Availability', score.ca, 4, '#3b82f6')}
-    ${scoreBar('Development Lift', score.dl, 4, '#10b981')}
-    ${scoreBar('Production Simplicity', score.pc, 4, '#f59e0b')}
+    ${scoreBar('Curriculum Design', score.cm, 4, '#8b5cf6')}
+    ${scoreBar('Content Inventory', score.ca, 7, '#3b82f6')}
+    ${scoreBar('Delivery Experience', score.dh, 1, '#6366f1')}
+    ${scoreBar('Resource Development', score.dl, 4, '#10b981')}
+    ${scoreBar('Production Requirement', score.pc, 4, '#f59e0b')}
     <div class="project-box">
       <h3>${fd.projectName||'—'}</h3>
       <p>Faculty/Partner: ${fd.faculty||'Not specified'}</p>
@@ -361,7 +363,7 @@ function renderResults() {
         </div>
       </div>
       <div class="summary-grid">
-        ${[{l:'Content Maturity',v:score.cm,c:'#8b5cf6'},{l:'Content Availability',v:score.ca,c:'#3b82f6'},{l:'Development Lift',v:score.dl,c:'#10b981'},{l:'Production Simplicity',v:score.pc,c:'#f59e0b'}].map(s=>`<div class="summary-grid-item">${s.l}<span style="font-size:14px;font-weight:700;color:${s.c}">${s.v}/4</span></div>`).join('')}
+        ${[{l:'Curriculum Design',v:score.cm,c:'#8b5cf6'},{l:'Content Inventory',v:score.ca,c:'#3b82f6'},{l:'Delivery Experience',v:score.dh,c:'#6366f1'},{l:'Resource Development',v:score.dl,c:'#10b981'},{l:'Production Requirement',v:score.pc,c:'#f59e0b'}].map(s=>`<div class="summary-grid-item">${s.l}<span style="font-size:14px;font-weight:700;color:${s.c}">${s.v}</span></div>`).join('')}
       </div>
     </div>
     <div class="summary-rows">
@@ -385,7 +387,7 @@ function renderResults() {
         <div class="result-hero" style="background:${score.bg};border-bottom:3px solid ${score.color}">
           <div class="result-hero-icon">${ICONS.checkCircle(score.color)}</div>
           <h1>Short Form Learning - Project Readiness Check</h1>
-          <div class="result-score" style="color:${score.color}">${score.total}/16</div>
+          <div class="result-score" style="color:${score.color}">${score.total}/20</div>
           <div class="result-cat" style="color:${score.color}">${score.category}</div>
           <div class="result-timeline">${ICONS.clock} Estimated: ${score.timeline}</div>
         </div>
@@ -422,8 +424,8 @@ function renderForm() {
       <div class="info-body" id="infoBody">
         <div class="info-body-inner">
           <p>This questionnaire takes approximately 3–5 minutes to complete.</p>
-          <p>It is designed to help you evaluate your project's readiness for a Short Form Learning build by identifying any gaps that may require attention. It will also provide an estimated project timeline and generate a summary that you can copy and paste into your Short Form Learning EOI.</p>
-          <p>You will be asked about the practical elements of your curriculum design, including whether learning outcomes are clearly defined, content is structured, learning activities are identified, and appropriate learning media (e.g., video, scenarios, quizzes, job aids) have been selected or developed. The questionnaire will also assess how complete these materials are and whether any production, review, or approval steps remain outstanding.</p>
+          <p>It is designed to help you evaluate your project's readiness for a Short Form Learning (SFL) build by identifying any gaps that may require attention. It will also provide an estimated project timeline and generate a summary that you can copy and paste into your Short Form Learning EOI.</p>
+          <p>You will be asked about the practical elements of your curriculum design, including whether learning outcomes are clearly defined, content is structured, learning activities are identified, and appropriate learning media (e.g., video, scenarios, quizzes, learning guides) have been selected or developed. The questionnaire will also assess how complete these materials are and whether any production, review, or approval steps remain outstanding.</p>
           <p>Note: This is not a formal scoping exercise. It is intended for your internal planning purposes only.</p>
         </div>
       </div>
@@ -477,8 +479,31 @@ function bindEvents() {
 
   // Dev tip
   const devtip = document.getElementById('devtip');
-  if(devtip) devtip.addEventListener('click', e=>{e.stopPropagation(); devtip.classList.toggle('show');});
-  document.addEventListener('click', ()=>{ if(devtip) devtip.classList.remove('show'); }, {once:true});
+  if(devtip) {
+    devtip.addEventListener('click', e=>{
+      e.stopPropagation();
+      devtip.classList.toggle('show');
+      const box = devtip.querySelector('.tip-box');
+      if(box && devtip.classList.contains('show')){
+        const icon = devtip.querySelector('.tip-icon');
+        const r = icon.getBoundingClientRect();
+        const boxW = 260;
+        let left = r.left;
+        if(left + boxW > window.innerWidth - 16) left = window.innerWidth - boxW - 16;
+        if(left < 16) left = 16;
+        box.style.left = left + 'px';
+        // position below icon, but flip above if it would overflow bottom
+        const spaceBelow = window.innerHeight - r.bottom - 6;
+        const boxH = 160; // estimated max height
+        if(spaceBelow < boxH){
+          box.style.top = Math.max(8, r.top - boxH - 6) + 'px';
+        } else {
+          box.style.top = (r.bottom + 6) + 'px';
+        }
+      }
+    });
+    document.addEventListener('click', ()=>devtip.classList.remove('show'), {once:true});
+  }
 
   // Nav pills
   document.querySelectorAll('[data-nav]').forEach(el=>el.addEventListener('click', ()=>{
@@ -504,6 +529,7 @@ function bindEvents() {
   document.querySelectorAll('[data-radio]').forEach(el=>el.addEventListener('click', ()=>{
     const field=el.dataset.radio, val=el.dataset.val;
     fd[field]=val;
+    if(field==='deliveredBefore' && val==='no') fd.developmentLift='scratch';
     if(field==='marketingDeadline') fd.marketingDate='';
     if(state.errors[field]) state.errors[field]=null;
     render();
