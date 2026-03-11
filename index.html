@@ -529,7 +529,7 @@ function bindEvents() {
   document.querySelectorAll('[data-radio]').forEach(el=>el.addEventListener('click', ()=>{
     const field=el.dataset.radio, val=el.dataset.val;
     fd[field]=val;
-    if(field==='deliveredBefore' && val==='no') fd.developmentLift='scratch';
+    if(field==='deliveredBefore') fd.developmentLift = val==='no' ? 'scratch' : '';
     if(field==='marketingDeadline') fd.marketingDate='';
     if(state.errors[field]) state.errors[field]=null;
     render();
